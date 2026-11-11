@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { allServiceNames } from "@/content/site";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const field =
@@ -13,21 +12,21 @@ function formatDate(iso: string) {
   return new Date(y, m - 1, d).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 }
 
-export function BookingForm() {
+export function BookingForm({ services, firstName, whatsapp }: { services: string[]; firstName: string; whatsapp: string }) {
   const [name, setName] = useState("");
-  const [service, setService] = useState(allServiceNames[0]);
+  const [service, setService] = useState(services[0] ?? "Otro / no estoy segura");
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const lines = [
-      `Hola Dailyn, ${name.trim() ? `soy ${name.trim()} y ` : ""}quiero agendar una cita.`,
+      `Hola ${firstName}, ${name.trim() ? `soy ${name.trim()} y ` : ""}quiero agendar una cita.`,
       `Servicio: ${service}`,
       date ? `Fecha: ${formatDate(date)}` : null,
       notes.trim() ? `Detalles: ${notes.trim()}` : null,
     ].filter(Boolean);
-    window.open(whatsappUrl(lines.join("\n")), "_blank", "noopener,noreferrer");
+    window.open(whatsappUrl(whatsapp, lines.join("\n")), "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -39,8 +38,8 @@ export function BookingForm() {
       <label className="grid gap-1">
         <span className="label">Servicio</span>
         <select className={`${field} cursor-pointer`} value={service} onChange={(e) => setService(e.target.value)}>
-          {allServiceNames.map((s) => (
-            <option key={s}>{s}</option>
+          {services.map((s, i) => (
+            <option key={`${s}-${i}`}>{s}</option>
           ))}
           <option>Tienda de maquillaje</option>
           <option>Otro / no estoy segura</option>
@@ -69,7 +68,7 @@ export function BookingForm() {
           +
         </span>
       </button>
-      <p className="text-sm text-muted italic">Se abre WhatsApp con tu mensaje listo. Dailyn te confirma disponibilidad.</p>
+      <p className="text-sm text-muted italic">Se abre WhatsApp con tu mensaje listo. {firstName} te confirma disponibilidad.</p>
     </form>
   );
 }

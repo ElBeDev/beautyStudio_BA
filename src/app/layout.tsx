@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
-import { site } from "@/content/site";
+import { siteUrl } from "@/content/site";
+import { getContent } from "@/lib/content";
 import "./globals.css";
 
 // Clash Display (Indian Type Foundry, licencia gratuita de Fontshare)
@@ -18,62 +19,68 @@ const inter = Inter({
   style: ["normal", "italic"],
 });
 
-const title = `${site.name} · Maquillaje y micropigmentación en San Antonio del Táchira`;
-
-export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
-  title: { default: title, template: `%s · ${site.name}` },
-  description: site.description,
-  keywords: [
-    "maquillaje San Antonio del Táchira",
-    "maquilladora Cúcuta",
-    "maquillaje quinceañeras",
-    "maquillaje novias",
-    "micropigmentación de cejas",
-    "micropigmentación de labios",
-    "lifting de pestañas",
-    "diseño de cejas",
-    "uñas en resina",
-    "Dailyn Angulo",
-  ],
-  alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    locale: "es_CO",
-    url: "/",
-    siteName: site.name,
-    title,
-    description: site.description,
-    images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: site.name }],
-  },
-  twitter: { card: "summary_large_image", title, description: site.description, images: ["/images/og.jpg"] },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const c = await getContent();
+  const title = `${c.name} · Maquillaje y micropigmentación en ${c.location.city}`;
+  return {
+    metadataBase: new URL(siteUrl),
+    title: { default: title, template: `%s · ${c.name}` },
+    description: c.description,
+    keywords: [
+      `maquillaje ${c.location.city}`,
+      "maquilladora Cúcuta",
+      "maquillaje quinceañeras",
+      "maquillaje novias",
+      "micropigmentación de cejas",
+      "micropigmentación de labios",
+      "lifting de pestañas",
+      "diseño de cejas",
+      "uñas en resina",
+      c.owner.name,
+    ],
+    alternates: { canonical: "/" },
+    openGraph: {
+      type: "website",
+      locale: "es_CO",
+      url: "/",
+      siteName: c.name,
+      title,
+      description: c.description,
+      images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: c.name }],
+    },
+    twitter: { card: "summary_large_image", title, description: c.description, images: ["/images/og.jpg"] },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#ffc2d1",
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BeautySalon",
-  name: site.name,
-  description: site.description,
-  url: site.url,
-  image: `${site.url}/images/og.jpg`,
-  telephone: site.contact.phoneE164,
-  founder: { "@type": "Person", name: site.owner.name, jobTitle: site.owner.titles[0] },
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: `${site.location.street} (${site.location.reference})`,
-    addressLocality: site.location.city,
-    addressRegion: site.location.region,
-    addressCountry: site.location.country,
-  },
-  areaServed: [site.location.city, "Cúcuta"],
-  sameAs: [site.contact.instagram.url, site.contact.tiktok.url],
-};
+async function jsonLd() {
+  const c = await getContent();
+  return {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    name: c.name,
+    description: c.description,
+    url: siteUrl,
+    image: `${siteUrl}/images/og.jpg`,
+    telephone: `+${c.contact.whatsapp}`,
+    founder: { "@type": "Person", name: c.owner.name, jobTitle: c.owner.title },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: [c.location.street, c.location.reference && `(${c.location.reference})`].filter(Boolean).join(" "),
+      addressLocality: c.location.city,
+      addressRegion: c.location.region,
+      addressCountry: "VE",
+    },
+    areaServed: [c.location.city, "Cúcuta"],
+    sameAs: [c.contact.instagram.url, c.contact.tiktok.url].filter(Boolean),
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const ld = await jsonLd();
   return (
     <html
       lang="es"
@@ -82,7 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }}
         />
         {children}
       </body>

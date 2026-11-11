@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { portfolio } from "@/content/site";
+import type { PortfolioItem } from "@/content/site";
 
 /**
  * Posición de cada foto en el mosaico de escritorio (4 columnas): columna, fila y tamaño.
+ * El patrón ocupa 11 filas y se repite hacia abajo cada 12 fotos.
  * En móvil se ignora y las fotos fluyen en 2 columnas.
  */
+const PATTERN_ROWS = 11;
 const slots: { c: number; r: number; s: 1 | 2 }[] = [
   { c: 1, r: 1, s: 1 },
   { c: 4, r: 1, s: 1 },
@@ -23,10 +25,9 @@ const slots: { c: number; r: number; s: 1 | 2 }[] = [
   { c: 3, r: 11, s: 1 },
 ];
 
-export function Portfolio() {
+export function Portfolio({ items }: { items: PortfolioItem[] }) {
   const [active, setActive] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const items = portfolio;
 
   const openAt = (i: number) => {
     setActive(i);
@@ -61,11 +62,12 @@ export function Portfolio() {
       <ul className="grid grid-flow-dense grid-cols-2 lg:grid-flow-row lg:grid-cols-4">
         {items.map((item, i) => {
           const slot = slots[i % slots.length];
+          const row = slot.r + Math.floor(i / slots.length) * PATTERN_ROWS;
           const big = slot.s === 2;
           return (
             <li
               key={item.src}
-              style={{ "--c": slot.c, "--r": slot.r, "--s": slot.s } as CSSProperties}
+              style={{ "--c": slot.c, "--r": row, "--s": slot.s } as CSSProperties}
               className={`aspect-square ${big ? "col-span-2 row-span-2" : ""} lg:[grid-column:var(--c)_/_span_var(--s)] lg:[grid-row:var(--r)_/_span_var(--s)]`}
             >
               <button
