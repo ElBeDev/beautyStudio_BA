@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# material fuente (no se usa en el sitio)
+/fotos/
+/Propuesta_Beauty_Studio_DA_v2.pdf
