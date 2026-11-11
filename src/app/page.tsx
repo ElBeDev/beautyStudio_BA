@@ -70,7 +70,7 @@ export default async function Home() {
           />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/55 via-black/5 to-black/15" />
 
-          <p className={`display absolute top-24 right-0 text-2xl text-rosa sm:top-32 sm:text-4xl ${pad}`}>{c.owner.name}</p>
+          <p className={`display absolute top-24 left-0 text-2xl text-rosa sm:top-32 sm:text-4xl ${pad}`}>{c.owner.name}</p>
 
           {c.hero.labels.length > 0 && (
             <div className={`absolute inset-x-0 top-1/2 ${pad}`}>
