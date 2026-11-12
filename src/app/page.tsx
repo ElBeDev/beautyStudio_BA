@@ -189,7 +189,7 @@ export default async function Home() {
         {/* FRASE */}
         <section className="relative isolate overflow-hidden bg-black text-rosa">
           <Image src={c.quote.image.src} alt={c.quote.imageAlt} fill sizes="100vw" style={pos(c.quote.image.focus, "50% 28%")} className="-z-20 object-cover" />
-          <div className="halftone absolute inset-0 -z-10" />
+          <div className="absolute inset-0 -z-10 bg-black/55" />
           <h2 className={`display grid min-h-[70svh] content-around py-16 text-4xl sm:text-5xl lg:min-h-[760px] ${pad}`}>
             {c.quote.lines.map(splitLine).map(([a, b], i) => (
               <span key={i} className="flex justify-between gap-6">

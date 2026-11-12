@@ -61,12 +61,6 @@
   line-height: 1.2;
 }
 
-/* Trama de puntos sobre la foto ancha */
-@utility halftone {
-  background-image: radial-gradient(rgb(0 0 0 / 0.55) 1px, transparent 1.4px);
-  background-size: 5px 5px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
