@@ -3,7 +3,7 @@ import { isAdmin } from "@/lib/auth";
 import { hasBlobStore } from "@/lib/content";
 
 /**
- * Sube una foto al Blob. El panel ya la achica en el navegador (máx. 2000 px, JPEG),
+ * Sube una foto al Blob. El panel ya la achica en el navegador (máx. 3000 px, JPEG),
  * así que llega muy por debajo del límite de 4.5 MB de las funciones de Vercel.
  */
 

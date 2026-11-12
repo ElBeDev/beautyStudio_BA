@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
       // Fotos subidas desde el panel
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com", pathname: "/uploads/**", search: "" },
     ],
-    qualities: [75],
+    qualities: [75, 90],
   },
   turbopack: {
     rules: {

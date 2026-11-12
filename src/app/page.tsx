@@ -64,7 +64,10 @@ export default async function Home() {
             alt={`${c.owner.name}, maquilladora y especialista en PMU, en sesión de estudio`}
             fill
             preload
-            sizes="100vw"
+            quality={90}
+            // Foto vertical (4:5) a pantalla completa con object-cover: en un celular manda la altura,
+            // así que hay que pedir ~80vh de ancho; con "100vw" llegaba una versión chica y estirada.
+            sizes="(max-aspect-ratio: 4/5) 80vh, 100vw"
             style={{ "--f": c.hero.image.focus ?? "50% 20%", "--fd": c.hero.focusDesktop } as CSSProperties}
             className="-z-20 object-cover object-[var(--f)] lg:object-[var(--fd)]"
           />

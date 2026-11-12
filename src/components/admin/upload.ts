@@ -1,12 +1,12 @@
 /**
  * Prepara y sube fotos desde el navegador.
- * Se achican a 2000 px por el lado largo y se convierten a JPEG: las fotos del celular
+ * Se achican a 3000 px por el lado largo y se convierten a JPEG: las fotos del celular
  * pasan de 5–10 MB a unos cientos de KB, y la orientación EXIF queda aplicada.
  */
 
 export type Uploaded = { url: string; width: number; height: number };
 
-const MAX_SIDE = 2000;
+const MAX_SIDE = 3000;
 const QUALITY = 0.85;
 
 async function resize(file: File) {
