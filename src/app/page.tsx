@@ -300,7 +300,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className={`bg-black pt-20 pb-24 text-white sm:pb-10 ${pad}`}>
+      <footer className={`bg-ink pt-20 pb-24 text-white sm:pb-10 ${pad}`}>
         <div className="grid gap-12 lg:grid-cols-2">
           <p className="display text-2xl leading-[1.3] text-rosa sm:text-[2rem]">
             Maquillaje, micropigmentación y estilismo en {c.location.city}

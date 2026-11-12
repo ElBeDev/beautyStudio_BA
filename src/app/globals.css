@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  /* Paleta: cambia estos valores para re-colorear todo el sitio */
-  --color-rosa: #ffc2d1;
-  --color-rosa-soft: #f3dfe0;
-  --color-petal: #fbf3f1;
-  --color-cream: #f7f5ed;
-  --color-vino: #5e1b2e;
-  --color-ink: #0a0a0a;
-  --color-muted: #5f5758;
+  /* Paleta: cambia estos valores para re-colorear todo el sitio.
+     Gris + cremita (los nombres de los tokens son históricos, el rol es lo que importa) */
+  --color-rosa: #e6d8c3; /* acento: crema arena (banda, textos sobre gris) */
+  --color-rosa-soft: #e5e1da; /* fondo suave: greige claro */
+  --color-petal: #f8f4ed; /* fondo más claro: crema muy suave */
+  --color-cream: #efe7da; /* fondo crema */
+  --color-vino: #4a4744; /* principal: gris carbón cálido */
+  --color-ink: #1e1d1b; /* texto / negro cálido */
+  --color-muted: #66615b; /* texto secundario: gris topo */
 
   --font-display: var(--font-clash), "Helvetica Neue", Arial, sans-serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;

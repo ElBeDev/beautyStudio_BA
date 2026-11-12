@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ffc2d1",
+  themeColor: "#e6d8c3",
 };
 
 async function jsonLd() {
