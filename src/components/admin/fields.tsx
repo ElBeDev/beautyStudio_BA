@@ -88,7 +88,7 @@ export function ItemControls({
   index: number;
   count: number;
   onMove: (from: number, to: number) => void;
-  onRemove: (i: number) => void;
+  onRemove?: (i: number) => void;
   removeLabel?: string;
   confirmText?: string;
 }) {
@@ -106,13 +106,15 @@ export function ItemControls({
       >
         ↓
       </button>
-      <button
-        type="button"
-        className={`${smallButton} text-vino`}
-        onClick={() => (!confirmText || window.confirm(confirmText)) && onRemove(index)}
-      >
-        {removeLabel}
-      </button>
+      {onRemove && (
+        <button
+          type="button"
+          className={`${smallButton} text-vino`}
+          onClick={() => (!confirmText || window.confirm(confirmText)) && onRemove(index)}
+        >
+          {removeLabel}
+        </button>
+      )}
     </div>
   );
 }

@@ -11,7 +11,8 @@ export type Photo = { src: string; focus?: string };
 
 export type PortfolioItem = Photo & { alt: string; width: number; height: number };
 
-export type Service = { name: string; tag: string; description: string };
+/** `image` es opcional: si tiene foto, sale junto al nombre en la lista de servicios. */
+export type Service = { name: string; tag: string; description: string; image?: Photo };
 
 export type ServiceGroup = {
   id: string;
@@ -21,6 +22,9 @@ export type ServiceGroup = {
   thumb: Photo;
   services: Service[];
 };
+
+/** Servicio suelto: un bloque propio con foto y descripción que se puede poner en cualquier parte de la página. */
+export type Feature = { id: string; name: string; tag: string; description: string; image: Photo };
 
 export type Testimonial = { quote: string; author: string; context: string };
 
@@ -50,6 +54,9 @@ export type SiteContent = {
   marquee: string[];
   intro: { line1: string; line2: string; line3: string; images: Photo[] };
   serviceGroups: ServiceGroup[];
+  features: Feature[];
+  /** Orden de los bloques entre la portada y el pie (ver `resolveLayout`). Vacío = orden de siempre. */
+  layout: string[];
   portfolio: { title: string; items: PortfolioItem[] };
   quote: { lines: string[]; image: Photo; imageAlt: string };
   about: { title: string; text: string; image: Photo; highlights: Highlight[] };
@@ -189,6 +196,9 @@ export const defaultContent: SiteContent = {
     },
   ],
 
+  features: [],
+  layout: [],
+
   portfolio: {
     title: "Trabajos que hablan\npor sí solos",
     items: [
@@ -243,4 +253,69 @@ export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://beautystudio
 
 export const firstName = (c: SiteContent) => c.owner.name.trim().split(/\s+/)[0] ?? "";
 
-export const allServiceNames = (c: SiteContent) => c.serviceGroups.flatMap((g) => g.services.map((s) => s.name));
+export const allServiceNames = (c: SiteContent) => [
+  ...c.serviceGroups.flatMap((g) => g.services.map((s) => s.name)),
+  ...c.features.map((f) => f.name),
+];
+
+/* ───────────── Orden de la página ───────────── */
+
+/** Secciones fijas que se pueden reordenar (la portada y el pie siempre van al principio y al final). */
+export const SECTIONS = {
+  cinta: "Cinta que se desplaza",
+  presentacion: "Presentación",
+  portafolio: "Portafolio",
+  frase: "Frase sobre foto",
+  sobre: "Sobre ti",
+  servicios: "Lista de servicios",
+  tienda: "Tienda",
+  opiniones: "Opiniones",
+  contacto: "Agenda y mapa",
+} as const;
+
+export const groupKey = (id: string) => `grupo:${id}`;
+export const featureKey = (id: string) => `suelto:${id}`;
+
+/** El orden de siempre: categorías después de la presentación, servicios sueltos después de la lista. */
+export function defaultLayout(c: SiteContent): string[] {
+  return [
+    "cinta",
+    "presentacion",
+    ...c.serviceGroups.map((g) => groupKey(g.id)),
+    "portafolio",
+    "frase",
+    "sobre",
+    "servicios",
+    ...c.features.map((f) => featureKey(f.id)),
+    "tienda",
+    "opiniones",
+    "contacto",
+  ];
+}
+
+/**
+ * Orden real de los bloques: el guardado, sin bloques que ya no existen y con los nuevos agregados.
+ * Una categoría nueva entra después de la última categoría; un servicio suelto nuevo, antes de "Agenda y mapa".
+ */
+export function resolveLayout(c: SiteContent): string[] {
+  const all = defaultLayout(c);
+  if (c.layout.length === 0) return all;
+  const valid = new Set(all);
+  const out = [...new Set(c.layout.filter((k) => valid.has(k)))];
+  for (const k of all) {
+    if (out.includes(k)) continue;
+    const lastGroup = k.startsWith("grupo:") ? out.findLastIndex((x) => x.startsWith("grupo:")) : -1;
+    const contacto = out.indexOf("contacto");
+    const at = lastGroup !== -1 ? lastGroup + 1 : contacto !== -1 ? contacto : out.length;
+    out.splice(at, 0, k);
+  }
+  return out;
+}
+
+/** Nombre de un bloque para el panel. */
+export function blockLabel(c: SiteContent, key: string): { kind: string; name: string } {
+  if (key in SECTIONS) return { kind: "Sección", name: SECTIONS[key as keyof typeof SECTIONS] };
+  const [type, id] = key.split(":");
+  if (type === "grupo") return { kind: "Categoría", name: c.serviceGroups.find((g) => g.id === id)?.title ?? id };
+  return { kind: "Servicio suelto", name: c.features.find((f) => f.id === id)?.name || "Sin nombre" };
+}

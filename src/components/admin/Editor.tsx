@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { logoutAction, restoreVersionAction, saveContentAction, type SaveResult } from "@/app/admin/actions";
-import type { PortfolioItem, ServiceGroup, SiteContent } from "@/content/site";
+import { blockLabel, resolveLayout, type Feature, type Photo, type PortfolioItem, type Service, type ServiceGroup, type SiteContent } from "@/content/site";
 import type { Version } from "@/lib/content";
 import { Card, Field, ItemControls, StringList, inputClass, moveItem, smallButton } from "./fields";
 import { FocusEditor, PhotoField, UploadButton } from "./PhotoField";
@@ -13,6 +13,7 @@ const TABS = [
   ["portada", "Portada"],
   ["presentacion", "Presentación"],
   ["servicios", "Servicios"],
+  ["orden", "Orden"],
   ["portafolio", "Portafolio"],
   ["frase", "Frase"],
   ["sobre", "Sobre ti"],
@@ -195,7 +196,14 @@ export function Editor({ initial, versions: initialVersions, storeReady }: Props
           </Card>
         )}
 
-        {tab === "servicios" && <ServicesTab groups={content.serviceGroups} update={update} />}
+        {tab === "servicios" && (
+          <>
+            <ServicesTab groups={content.serviceGroups} update={update} />
+            <FeaturesTab content={content} update={update} />
+          </>
+        )}
+
+        {tab === "orden" && <OrderTab content={content} update={update} />}
 
         {tab === "portafolio" && <PortfolioTab portfolio={content.portfolio} update={update} onError={onUploadError} />}
 
@@ -509,6 +517,20 @@ function ServicesTab({ groups, update }: { groups: ServiceGroup[]; update: Updat
                   value={s.description}
                   onChange={(v) => setGroup(i, (d) => void (d.services[k].description = v))}
                 />
+                <MoveTo
+                  groups={groups}
+                  current={i}
+                  onMove={(to) => update((d) => moveService(d, { group: i, index: k }, to))}
+                />
+                <ServicePhoto
+                  value={s.image}
+                  onChange={(p) =>
+                    setGroup(i, (d) => {
+                      if (p) d.services[k].image = p;
+                      else delete d.services[k].image;
+                    })
+                  }
+                />
                 <ItemControls
                   index={k}
                   count={g.services.length}
@@ -550,6 +572,175 @@ function ServicesTab({ groups, update }: { groups: ServiceGroup[]; update: Updat
         </button>
       )}
     </>
+  );
+}
+
+/** Destino de un servicio: el índice de una categoría o "suelto" (bloque propio). */
+type Destination = number | "suelto";
+
+const isPlaceholder = (p: Photo) => p.src === PLACEHOLDER;
+
+/** Saca un servicio de donde está (categoría o servicio suelto) y lo pone en `to`. */
+function moveService(d: SiteContent, from: { group: number; index: number } | { feature: number }, to: Destination) {
+  let s: Service;
+  if ("feature" in from) {
+    const [f] = d.features.splice(from.feature, 1);
+    if (!f) return;
+    s = { name: f.name, tag: f.tag, description: f.description, ...(isPlaceholder(f.image) ? {} : { image: f.image }) };
+  } else {
+    const [found] = d.serviceGroups[from.group]?.services.splice(from.index, 1) ?? [];
+    if (!found) return;
+    s = found;
+  }
+  if (to === "suelto") {
+    d.features.push({ id: `suelto-${Date.now()}`, name: s.name, tag: s.tag, description: s.description, image: s.image ?? { src: PLACEHOLDER } });
+  } else {
+    d.serviceGroups[to]?.services.push(s);
+  }
+}
+
+/** Menú para mandar un servicio a otra categoría o dejarlo como bloque propio. */
+function MoveTo({ groups, current, onMove }: { groups: ServiceGroup[]; current: Destination; onMove: (to: Destination) => void }) {
+  const others = groups.map((g, j) => [j, g.title || "Categoría sin nombre"] as const).filter(([j]) => j !== current);
+  return (
+    <label className="flex flex-wrap items-center gap-2 text-xs">
+      <span className="label">Mover a</span>
+      <select
+        className={`${inputClass} w-auto max-w-full py-1.5 text-sm`}
+        value=""
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v) onMove(v === "suelto" ? "suelto" : Number(v));
+        }}
+      >
+        <option value="">Elegir…</option>
+        {others.map(([j, title]) => (
+          <option key={j} value={j}>
+            Categoría: {title}
+          </option>
+        ))}
+        {current !== "suelto" && <option value="suelto">Servicio suelto (bloque propio con foto)</option>}
+      </select>
+    </label>
+  );
+}
+
+/* ───────────── Servicios sueltos ───────────── */
+
+function FeaturesTab({ content, update }: { content: SiteContent; update: Update }) {
+  const { features, serviceGroups } = content;
+  const setFeature = (i: number, fn: (f: Feature) => void) =>
+    update((d) => {
+      if (d.features[i]) fn(d.features[i]);
+    });
+
+  return (
+    <Card
+      title="Servicios sueltos"
+      hint="Servicios que no van dentro de una categoría: cada uno sale como un bloque propio con foto, descripción y botón para agendar. Lo puedes acomodar en cualquier parte de la página desde la pestaña Orden."
+    >
+      {features.map((f, i) => (
+        <div key={f.id} className="grid gap-4 border border-ink/10 p-4">
+          <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+            <Field label="Nombre" value={f.name} onChange={(v) => setFeature(i, (d) => void (d.name = v))} />
+            <Field label="Etiqueta" value={f.tag} onChange={(v) => setFeature(i, (d) => void (d.tag = v))} />
+          </div>
+          <Field
+            label="Descripción"
+            rows={3}
+            maxLength={600}
+            value={f.description}
+            onChange={(v) => setFeature(i, (d) => void (d.description = v))}
+          />
+          <PhotoField label="Foto" value={f.image} onChange={(p) => setFeature(i, (d) => void (d.image = p))} previews={[{ label: "Recorte", aspect: "4/5" }]} />
+          <MoveTo groups={serviceGroups} current="suelto" onMove={(to) => update((d) => moveService(d, { feature: i }, to))} />
+          <ItemControls
+            index={i}
+            count={features.length}
+            onMove={(a, b) => update((d) => void (d.features = moveItem(d.features, a, b)))}
+            onRemove={(j) => update((d) => void d.features.splice(j, 1))}
+            confirmText={`¿Quitar “${f.name || "este servicio"}”?`}
+          />
+        </div>
+      ))}
+      {features.length < 12 && (
+        <button
+          type="button"
+          className={`${smallButton} justify-self-start`}
+          onClick={() =>
+            update((d) => void d.features.push({ id: `suelto-${Date.now()}`, name: "", tag: "", description: "", image: { src: PLACEHOLDER } }))
+          }
+        >
+          + Agregar servicio suelto
+        </button>
+      )}
+      <p className="text-xs text-muted">Un servicio sin nombre no se guarda. Sube una foto propia: mientras no la cambies sale una de muestra.</p>
+    </Card>
+  );
+}
+
+/* ───────────── Orden de la página ───────────── */
+
+function OrderTab({ content, update }: { content: SiteContent; update: Update }) {
+  const layout = resolveLayout(content);
+  return (
+    <Card
+      title="Orden de la página"
+      hint="Sube o baja cada bloque para acomodarlo donde quieras. La portada siempre va primero y el pie de página al final."
+    >
+      <ol className="grid gap-2">
+        {layout.map((key, i) => {
+          const { kind, name } = blockLabel(content, key);
+          return (
+            <li key={key} className="flex flex-wrap items-center justify-between gap-3 border border-ink/10 px-3 py-2.5">
+              <span className="min-w-0">
+                <span className="label block text-[0.7rem] text-muted">{kind}</span>
+                <span className="block truncate">{name}</span>
+              </span>
+              <ItemControls index={i} count={layout.length} onMove={(a, b) => update((d) => void (d.layout = moveItem(resolveLayout(d), a, b)))} />
+            </li>
+          );
+        })}
+      </ol>
+      <button
+        type="button"
+        className={`${smallButton} justify-self-start`}
+        onClick={() => window.confirm("¿Volver al orden original de la página?") && update((d) => void (d.layout = []))}
+      >
+        Restablecer orden
+      </button>
+    </Card>
+  );
+}
+
+/** Foto opcional de un servicio: se puede agregar, cambiar o quitar. */
+function ServicePhoto({ value, onChange }: { value?: Photo; onChange: (p: Photo | undefined) => void }) {
+  const [error, setError] = useState<string | null>(null);
+  if (!value) {
+    return (
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <UploadButton
+            label="+ Agregar foto"
+            onUploaded={(u) => {
+              setError(null);
+              onChange({ src: u.url });
+            }}
+            onError={setError}
+          />
+          <span className="text-xs text-muted">Opcional: sale junto al nombre en la lista de servicios.</span>
+        </div>
+        {error && <p className="text-sm text-vino">{error}</p>}
+      </div>
+    );
+  }
+  return (
+    <div className="grid gap-3">
+      <PhotoField label="Foto del servicio" value={value} onChange={onChange} previews={[{ label: "Recorte", aspect: "4/5" }]} />
+      <button type="button" className={`${smallButton} justify-self-start text-vino`} onClick={() => onChange(undefined)}>
+        Quitar foto
+      </button>
+    </div>
   );
 }
 

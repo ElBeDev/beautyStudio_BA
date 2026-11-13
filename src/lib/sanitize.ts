@@ -1,5 +1,6 @@
 import {
   defaultContent,
+  type Feature,
   type Highlight,
   type Photo,
   type PortfolioItem,
@@ -56,7 +57,11 @@ const service = (v: unknown): Service | null => {
   const o = obj(v);
   const name = str(o.name, "", 80);
   if (!name) return null;
-  return { name, tag: str(o.tag, "", 60), description: str(o.description, "", 400) };
+  const base = { name, tag: str(o.tag, "", 60), description: str(o.description, "", 400) };
+  const img = obj(o.image);
+  if (typeof img.src !== "string" || !isAllowedPhotoSrc(img.src)) return base;
+  const f = focus(img.focus);
+  return { ...base, image: f ? { src: img.src, focus: f } : { src: img.src } };
 };
 
 const serviceGroup = (v: unknown, i: number, fallback: ServiceGroup[]): ServiceGroup | null => {
@@ -74,6 +79,21 @@ const serviceGroup = (v: unknown, i: number, fallback: ServiceGroup[]): ServiceG
     services: list(o.services, fb?.services ?? [], 12, service),
   };
 };
+
+const feature = (v: unknown, i: number): Feature | null => {
+  const o = obj(v);
+  const name = str(o.name, "", 80);
+  if (!name) return null;
+  return {
+    id: str(o.id, "", 40).replace(/[^\w-]/g, "") || `suelto-${i + 1}`,
+    name,
+    tag: str(o.tag, "", 60),
+    description: str(o.description, "", 600),
+    image: photo(o.image, emptyPhoto),
+  };
+};
+
+const BLOCK_KEY = /^[\w:-]{1,60}$/;
 
 const portfolioItem = (v: unknown): PortfolioItem | null => {
   const o = obj(v);
@@ -161,6 +181,8 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
       images: [0, 1].map((i) => photo(introImages[i], F.intro.images[i] ?? emptyPhoto)),
     },
     serviceGroups: list(c.serviceGroups, F.serviceGroups, 8, (x, i) => serviceGroup(x, i, F.serviceGroups)),
+    features: list(c.features, F.features, 12, feature),
+    layout: list(c.layout, F.layout, 80, (x) => (typeof x === "string" && BLOCK_KEY.test(x) ? x : null)),
     portfolio: {
       title: str(portfolio.title, F.portfolio.title, 120),
       items: list(portfolio.items, F.portfolio.items, 60, portfolioItem),
