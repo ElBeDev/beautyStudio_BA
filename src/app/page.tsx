@@ -62,27 +62,36 @@ export default async function Home() {
         <div>
           <h3 className="display text-3xl sm:text-4xl">{g.title}</h3>
           {g.subtitle && <p className="mt-3 text-lg font-light italic">{g.subtitle}</p>}
+          {g.description && <p className="mx-auto mt-6 max-w-md leading-relaxed whitespace-pre-line">{g.description}</p>}
         </div>
-        <a href={wa(serviceMessage(first, g.title))} {...ext} className="group flex flex-col items-center">
-          <span className="relative block aspect-[5/3] w-52 overflow-hidden">
-            <Image
-              src={g.thumb.src}
-              alt=""
-              fill
-              sizes="208px"
-              style={pos(g.thumb.focus, "50% 25%")}
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-          </span>
-          <span className="label mt-5 flex items-center gap-3">
-            Consultar <Plus />
-          </span>
-        </a>
-        <ul className="text-sm font-light italic">
-          {g.services.map((s, k) => (
-            <li key={k}>{s.name}</li>
-          ))}
-        </ul>
+        {(g.thumb || g.button) && (
+          <a href={wa(serviceMessage(first, g.title))} {...ext} aria-label={`${g.button || "Consultar"}: ${g.title}`} className="group flex flex-col items-center">
+            {g.thumb && (
+              <span className="relative block aspect-[5/3] w-52 overflow-hidden">
+                <Image
+                  src={g.thumb.src}
+                  alt=""
+                  fill
+                  sizes="208px"
+                  style={pos(g.thumb.focus, "50% 25%")}
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </span>
+            )}
+            {g.button && (
+              <span className={`label flex items-center gap-3 ${g.thumb ? "mt-5" : ""}`}>
+                {g.button} <Plus />
+              </span>
+            )}
+          </a>
+        )}
+        {g.showList && g.services.length > 0 && (
+          <ul className="text-sm font-light italic">
+            {g.services.map((s, k) => (
+              <li key={k}>{s.name}</li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

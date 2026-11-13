@@ -496,12 +496,38 @@ function ServicesTab({ groups, update }: { groups: ServiceGroup[]; update: Updat
             onChange={(p) => setGroup(i, (d) => void (d.image = p))}
             previews={[{ label: "Recorte", aspect: "4/5" }]}
           />
-          <PhotoField
-            label="Foto pequeña (botón “Consultar”)"
-            value={g.thumb}
-            onChange={(p) => setGroup(i, (d) => void (d.thumb = p))}
-            previews={[{ label: "Recorte", aspect: "5/3" }]}
+          <Field
+            label="Texto (opcional)"
+            hint="Sale debajo del subtítulo. Escribe lo que quieras: detalles, precios, promociones…"
+            rows={3}
+            maxLength={600}
+            value={g.description}
+            onChange={(v) => setGroup(i, (d) => void (d.description = v))}
           />
+          <OptionalPhoto
+            label="Foto pequeña (encima del botón)"
+            addLabel="+ Agregar foto pequeña"
+            hint="Opcional: si la quitas, el bloque queda solo con texto."
+            aspect="5/3"
+            value={g.thumb ?? undefined}
+            onChange={(p) => setGroup(i, (d) => void (d.thumb = p ?? null))}
+          />
+          <Field
+            label="Texto del botón"
+            hint="Abre WhatsApp. Déjalo vacío para no mostrar botón."
+            value={g.button}
+            maxLength={40}
+            onChange={(v) => setGroup(i, (d) => void (d.button = v))}
+          />
+          <label className="flex items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="size-5 accent-ink"
+              checked={g.showList}
+              onChange={(e) => setGroup(i, (d) => void (d.showList = e.target.checked))}
+            />
+            Mostrar los nombres de los servicios al pie del bloque
+          </label>
           <div className="grid gap-3 border-t border-dashed border-ink/20 pt-5">
             <p className="label text-xs">Servicios</p>
             {g.services.map((s, k) => (
@@ -522,7 +548,11 @@ function ServicesTab({ groups, update }: { groups: ServiceGroup[]; update: Updat
                   current={i}
                   onMove={(to) => update((d) => moveService(d, { group: i, index: k }, to))}
                 />
-                <ServicePhoto
+                <OptionalPhoto
+                  label="Foto del servicio"
+                  addLabel="+ Agregar foto"
+                  hint="Opcional: sale junto al nombre en la lista de servicios."
+                  aspect="4/5"
                   value={s.image}
                   onChange={(p) =>
                     setGroup(i, (d) => {
@@ -561,8 +591,11 @@ function ServicesTab({ groups, update }: { groups: ServiceGroup[]; update: Updat
                 id: `grupo-${Date.now()}`,
                 title: "Nueva categoría",
                 subtitle: "",
+                description: "",
                 image: { src: PLACEHOLDER },
-                thumb: { src: PLACEHOLDER },
+                thumb: null,
+                button: "Consultar",
+                showList: true,
                 services: [],
               },
             ])
@@ -713,22 +746,36 @@ function OrderTab({ content, update }: { content: SiteContent; update: Update })
   );
 }
 
-/** Foto opcional de un servicio: se puede agregar, cambiar o quitar. */
-function ServicePhoto({ value, onChange }: { value?: Photo; onChange: (p: Photo | undefined) => void }) {
+/** Foto opcional: se puede agregar, cambiar o quitar. */
+function OptionalPhoto({
+  label,
+  addLabel,
+  hint,
+  aspect,
+  value,
+  onChange,
+}: {
+  label: string;
+  addLabel: string;
+  hint: string;
+  aspect: string;
+  value?: Photo;
+  onChange: (p: Photo | undefined) => void;
+}) {
   const [error, setError] = useState<string | null>(null);
   if (!value) {
     return (
       <div className="grid gap-2">
         <div className="flex flex-wrap items-center gap-3">
           <UploadButton
-            label="+ Agregar foto"
+            label={addLabel}
             onUploaded={(u) => {
               setError(null);
               onChange({ src: u.url });
             }}
             onError={setError}
           />
-          <span className="text-xs text-muted">Opcional: sale junto al nombre en la lista de servicios.</span>
+          <span className="text-xs text-muted">{hint}</span>
         </div>
         {error && <p className="text-sm text-vino">{error}</p>}
       </div>
@@ -736,7 +783,7 @@ function ServicePhoto({ value, onChange }: { value?: Photo; onChange: (p: Photo 
   }
   return (
     <div className="grid gap-3">
-      <PhotoField label="Foto del servicio" value={value} onChange={onChange} previews={[{ label: "Recorte", aspect: "4/5" }]} />
+      <PhotoField label={label} value={value} onChange={onChange} previews={[{ label: "Recorte", aspect }]} />
       <button type="button" className={`${smallButton} justify-self-start text-vino`} onClick={() => onChange(undefined)}>
         Quitar foto
       </button>

@@ -18,8 +18,15 @@ export type ServiceGroup = {
   id: string;
   title: string;
   subtitle: string;
+  /** Texto libre debajo del subtítulo (opcional). */
+  description: string;
   image: Photo;
-  thumb: Photo;
+  /** Foto pequeña del botón; `null` = sin foto. */
+  thumb: Photo | null;
+  /** Texto del botón de WhatsApp; vacío = sin botón. */
+  button: string;
+  /** Mostrar los nombres de los servicios al pie del bloque. */
+  showList: boolean;
   services: Service[];
 };
 
@@ -115,6 +122,9 @@ export const defaultContent: SiteContent = {
       id: "maquillaje",
       title: "Maquillaje y estilismo",
       subtitle: "Para toda ocasión",
+      description: "",
+      button: "Consultar",
+      showList: true,
       image: { src: "/images/glam-1.jpg" },
       thumb: { src: "/images/novia-1.jpg", focus: "50% 30%" },
       services: [
@@ -135,6 +145,9 @@ export const defaultContent: SiteContent = {
       id: "pmu",
       title: "Micropigmentación",
       subtitle: "Cejas y labios",
+      description: "",
+      button: "Consultar",
+      showList: true,
       image: { src: "/images/pmu-cejas-2.jpg", focus: "50% 35%" },
       thumb: { src: "/images/pmu-labios-1.jpg", focus: "50% 55%" },
       services: [
@@ -155,6 +168,9 @@ export const defaultContent: SiteContent = {
       id: "mirada",
       title: "Cejas y pestañas",
       subtitle: "Diseño y lifting",
+      description: "",
+      button: "Consultar",
+      showList: true,
       image: { src: "/images/lash-lifting-2.jpg", focus: "50% 50%" },
       thumb: { src: "/images/cejas-henna.jpg", focus: "50% 38%" },
       services: [
@@ -174,6 +190,9 @@ export const defaultContent: SiteContent = {
       id: "cuidado",
       title: "Cabello, uñas y cuerpo",
       subtitle: "Hidratación, resina y depilación",
+      description: "",
+      button: "Consultar",
+      showList: true,
       image: { src: "/images/estilismo-ondas.jpg", focus: "50% 45%" },
       thumb: { src: "/images/estilismo-recogido.jpg", focus: "50% 40%" },
       services: [

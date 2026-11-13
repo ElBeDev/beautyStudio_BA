@@ -74,8 +74,11 @@ const serviceGroup = (v: unknown, i: number, fallback: ServiceGroup[]): ServiceG
     id,
     title,
     subtitle: str(o.subtitle, fb?.subtitle ?? "", 120),
+    description: str(o.description, fb?.description ?? "", 600),
     image: photo(o.image, fb?.image ?? emptyPhoto),
-    thumb: photo(o.thumb, fb?.thumb ?? emptyPhoto),
+    thumb: o.thumb === null ? null : photo(o.thumb, fb?.thumb ?? emptyPhoto),
+    button: str(o.button, fb?.button ?? "Consultar", 40),
+    showList: typeof o.showList === "boolean" ? o.showList : (fb?.showList ?? true),
     services: list(o.services, fb?.services ?? [], 12, service),
   };
 };
