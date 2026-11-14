@@ -67,12 +67,12 @@ export default async function Home() {
         {(g.thumb || g.button) && (
           <a href={wa(serviceMessage(first, g.title))} {...ext} aria-label={`${g.button || "Consultar"}: ${g.title}`} className="group flex flex-col items-center">
             {g.thumb && (
-              <span className="relative block aspect-[5/3] w-52 overflow-hidden">
+              <span className="relative block aspect-[4/3] w-[min(20rem,78vw)] overflow-hidden sm:w-96 lg:w-[28rem]">
                 <Image
                   src={g.thumb.src}
                   alt=""
                   fill
-                  sizes="208px"
+                  sizes="(min-width: 1024px) 448px, (min-width: 640px) 384px, 78vw"
                   style={pos(g.thumb.focus, "50% 25%")}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />

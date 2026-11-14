@@ -1,29 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PortfolioItem } from "@/content/site";
-
-/**
- * Posición de cada foto en el mosaico de escritorio (4 columnas): columna, fila y tamaño.
- * El patrón ocupa 11 filas y se repite hacia abajo cada 12 fotos.
- * En móvil se ignora y las fotos fluyen en 2 columnas.
- */
-const PATTERN_ROWS = 11;
-const slots: { c: number; r: number; s: 1 | 2 }[] = [
-  { c: 1, r: 1, s: 1 },
-  { c: 4, r: 1, s: 1 },
-  { c: 2, r: 2, s: 2 },
-  { c: 1, r: 4, s: 1 },
-  { c: 4, r: 4, s: 1 },
-  { c: 3, r: 5, s: 1 },
-  { c: 1, r: 6, s: 2 },
-  { c: 4, r: 7, s: 1 },
-  { c: 3, r: 8, s: 1 },
-  { c: 1, r: 9, s: 2 },
-  { c: 4, r: 9, s: 1 },
-  { c: 3, r: 11, s: 1 },
-];
 
 export function Portfolio({ items }: { items: PortfolioItem[] }) {
   const [active, setActive] = useState<number | null>(null);
@@ -59,35 +38,27 @@ export function Portfolio({ items }: { items: PortfolioItem[] }) {
 
   return (
     <>
-      <ul className="grid grid-flow-dense grid-cols-2 lg:grid-flow-row lg:grid-cols-4">
-        {items.map((item, i) => {
-          const slot = slots[i % slots.length];
-          const row = slot.r + Math.floor(i / slots.length) * PATTERN_ROWS;
-          const big = slot.s === 2;
-          return (
-            <li
-              key={item.src}
-              style={{ "--c": slot.c, "--r": row, "--s": slot.s } as CSSProperties}
-              className={`aspect-square ${big ? "col-span-2 row-span-2" : ""} lg:[grid-column:var(--c)_/_span_var(--s)] lg:[grid-row:var(--r)_/_span_var(--s)]`}
+      {/* Cuadrícula pareja: todas las fotos del mismo tamaño y formato vertical. */}
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 lg:gap-4">
+        {items.map((item, i) => (
+          <li key={item.src} className="aspect-[4/5]">
+            <button
+              type="button"
+              onClick={() => openAt(i)}
+              className="group relative block h-full w-full overflow-hidden"
+              aria-label={`Ver foto: ${item.alt}`}
             >
-              <button
-                type="button"
-                onClick={() => openAt(i)}
-                className="group relative block h-full w-full overflow-hidden"
-                aria-label={`Ver foto: ${item.alt}`}
-              >
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  sizes={big ? "(min-width: 1024px) 33vw, 100vw" : "(min-width: 1024px) 17vw, 50vw"}
-                  style={{ objectPosition: item.focus ?? "50% 22%" }}
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </button>
-            </li>
-          );
-        })}
+              <Image
+                src={item.src}
+                alt={item.alt}
+                fill
+                sizes="(min-width: 1024px) 22vw, 50vw"
+                style={{ objectPosition: item.focus ?? "50% 22%" }}
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </button>
+          </li>
+        ))}
       </ul>
 
       <dialog
