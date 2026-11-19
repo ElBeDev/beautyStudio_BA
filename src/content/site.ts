@@ -140,7 +140,7 @@ export const defaultContent: SiteContent = {
 
   intro: {
     title: "Beauty Studio by Dailyn Angulo",
-    line1: "especialista en PMU certificada,",
+    line1: "Aquí cada clienta recibe un trabajo pensado para ella: su rostro, su evento y su estilo.",
     line2: "maquilladora profesional",
     line3: "+7 años de experiencia.",
     images: [
@@ -271,11 +271,11 @@ export const defaultContent: SiteContent = {
 
   about: {
     title: "Detrás del estudio",
-    text: "En Beauty Studio DA cada clienta recibe un trabajo pensado para ella: su rostro, su evento y su estilo.",
+    text: "Maquilladora certificada con más de 7 años de experiencia y artista PMU con certificación internacional. Su trabajo: resaltar tu belleza con maquillaje para novias, quinceañeras y eventos, micropigmentación de cejas y labios, y diseño de cejas.",
     image: { src: "/images/dailyn.jpg", focus: "50% 0%" },
     highlights: [
       { title: "+7 años", text: "Maquilladora profesional" },
-      { title: "PMU", text: "Especialista certificada" },
+      { title: "PMU", text: "Certificación internacional" },
       { title: "Todo en un lugar", text: "Maquillaje, peinado, cejas, uñas y tienda" },
     ],
   },
