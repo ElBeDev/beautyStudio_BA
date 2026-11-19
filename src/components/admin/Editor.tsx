@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { logoutAction, restoreVersionAction, saveContentAction, type SaveResult } from "@/app/admin/actions";
-import { BODY_FONTS, DISPLAY_FONTS, blockLabel, findFont, resolveLayout, type Feature, type FontOption, type Photo, type PortfolioItem, type Service, type ServiceGroup, type SiteContent } from "@/content/site";
+import { BODY_FONTS, DISPLAY_FONTS, MENU_SIZES, SAME_AS_TITLES, blockLabel, menuStyles, findFont, resolveLayout, type Feature, type FontOption, type Photo, type PortfolioItem, type Service, type ServiceGroup, type SiteContent } from "@/content/site";
 import type { Version } from "@/lib/content";
 import { Card, Field, ItemControls, StringList, inputClass, moveItem, smallButton } from "./fields";
 import { FocusEditor, PhotoField, UploadButton } from "./PhotoField";
@@ -21,6 +21,7 @@ const TABS = [
   ["opiniones", "Opiniones"],
   ["contacto", "Contacto"],
   ["letras", "Letras"],
+  ["menu", "Menú"],
   ["general", "General"],
   ["historial", "Historial"],
 ] as const;
@@ -369,6 +370,8 @@ export function Editor({ initial, versions: initialVersions, storeReady }: Props
         )}
 
         {tab === "letras" && <FontsTab theme={content.theme} update={update} />}
+
+        {tab === "menu" && <MenuTab content={content} update={update} />}
 
         {tab === "general" && (
           <Card title="General">
@@ -792,6 +795,136 @@ function OptionalPhoto({
         Quitar foto
       </button>
     </div>
+  );
+}
+
+/* ───────────── Menú ───────────── */
+
+const MENU_FONTS = [SAME_AS_TITLES, ...DISPLAY_FONTS];
+
+function MenuTab({ content, update }: { content: SiteContent; update: (fn: (d: SiteContent) => void) => void }) {
+  const { menu } = content;
+  const styles = menuStyles(menu);
+  const shown = menu.items.filter((i) => i.show);
+
+  return (
+    <>
+      <Card title="Vista previa" hint="Así se ve el menú abierto y el botón de agendar. Se aplica a la web al guardar.">
+        <div className="grid gap-4 bg-rosa-soft p-4 sm:p-6">
+          <div className="w-full max-w-sm bg-white text-ink shadow-sm">
+            <div className="flex min-h-11 items-center justify-between gap-2 pl-4">
+              <span className="min-w-0 truncate py-2" style={styles.brand}>
+                {menu.brand || content.name}
+              </span>
+              <span className="relative flex h-11 w-14 shrink-0 items-center justify-center" aria-hidden="true">
+                <span className="absolute h-px w-6 rotate-45 bg-ink" />
+                <span className="absolute h-px w-6 -rotate-45 bg-ink" />
+              </span>
+            </div>
+            <div className="border-t border-dashed border-ink/40 px-4 pb-2">
+              {shown.map((i) => (
+                <p key={i.id} style={styles.item} className="flex items-center justify-between gap-6 border-b border-dashed border-ink/25 py-3.5 last:border-b-0">
+                  {i.label}
+                  <span className="text-base font-light">+</span>
+                </p>
+              ))}
+            </div>
+          </div>
+          <span style={styles.button} className="flex items-center gap-4 justify-self-end bg-ink px-6 py-3.5 text-rosa">
+            {menu.button}
+            <span className="text-xl leading-none font-light">+</span>
+          </span>
+        </div>
+      </Card>
+
+      <Card title="Textos y tamaño">
+        <Field
+          label="Nombre en la barra"
+          placeholder={content.name}
+          hint="Vacío = el nombre del estudio (General)."
+          value={menu.brand}
+          onChange={(v) => update((d) => void (d.menu.brand = v))}
+        />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <SizeField
+            label="Tamaño del nombre"
+            value={menu.brandSize}
+            {...MENU_SIZES.brand}
+            onChange={(n) => update((d) => void (d.menu.brandSize = n))}
+          />
+          <SizeField
+            label="Tamaño de las opciones"
+            value={menu.itemSize}
+            {...MENU_SIZES.item}
+            onChange={(n) => update((d) => void (d.menu.itemSize = n))}
+          />
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-ink"
+            checked={menu.uppercase}
+            onChange={(e) => update((d) => void (d.menu.uppercase = e.target.checked))}
+          />
+          Menú en MAYÚSCULAS
+        </label>
+        <Field label="Botón de agendar" value={menu.button} onChange={(v) => update((d) => void (d.menu.button = v))} />
+      </Card>
+
+      <Card title="Opciones del menú" hint="Cambia el texto, el orden o esconde las que no quieras. Cada una lleva a su sección de la página.">
+        {menu.items.map((item, i) => (
+          <div key={item.id} className="grid gap-3 border border-ink/10 p-3 sm:grid-cols-[2fr_auto_auto] sm:items-end">
+            <Field
+              label={`Lleva a: ${MENU_TARGET[item.id]}`}
+              value={item.label}
+              onChange={(v) => update((d) => void (d.menu.items[i].label = v))}
+            />
+            <label className="flex items-center gap-2 pb-2.5 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-ink"
+                checked={item.show}
+                onChange={(e) => update((d) => void (d.menu.items[i].show = e.target.checked))}
+              />
+              Mostrar
+            </label>
+            <ItemControls
+              index={i}
+              count={menu.items.length}
+              onMove={(a, b) => update((d) => void (d.menu.items = moveItem(d.menu.items, a, b)))}
+            />
+          </div>
+        ))}
+      </Card>
+
+      <FontPicker
+        title="Letra del menú"
+        fonts={MENU_FONTS}
+        value={menu.font}
+        sample={menu.uppercase ? "SERVICIOS" : "Servicios"}
+        onChange={(k) => update((d) => void (d.menu.font = k))}
+      />
+    </>
+  );
+}
+
+const MENU_TARGET: Record<SiteContent["menu"]["items"][number]["id"], string> = {
+  servicios: "Lista de servicios",
+  portafolio: "Portafolio",
+  sobre: "Sobre ti",
+  tienda: "Tienda",
+  contacto: "Agenda y mapa",
+};
+
+function SizeField({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void }) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="label flex justify-between text-xs">
+        {label}
+        <span className="tabular-nums text-muted">{value} px</span>
+      </span>
+      <input type="range" min={min} max={max} step={1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="accent-ink" />
+    </label>
   );
 }
 

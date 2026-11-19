@@ -324,7 +324,7 @@ export default async function Home() {
 
   return (
     <>
-      <Nav name={c.name} firstName={first} whatsapp={c.contact.whatsapp} />
+      <Nav name={c.name} firstName={first} whatsapp={c.contact.whatsapp} menu={c.menu} />
       <main id="inicio">
         {/* PORTADA */}
         <section className="relative isolate flex h-svh min-h-[620px] flex-col justify-end overflow-hidden bg-vino text-white">

@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 /**
  * Modelo del contenido del sitio y sus valores iniciales.
  *
@@ -64,6 +66,58 @@ export const BODY_FONTS: FontOption[] = [
 
 export const findFont = (list: FontOption[], key: string) => list.find((f) => f.key === key) ?? list[0];
 
+/** Opción "igual que los títulos" para el menú: usa las variables que pone layout.tsx. */
+export const SAME_AS_TITLES: FontOption = {
+  key: "",
+  label: "Igual que los títulos",
+  cssVar: "--font-display",
+  fallback: "sans-serif",
+  weight: 500,
+  tracking: "-0.01em",
+  note: "Usa la letra elegida en Letras",
+};
+
+export const MENU_LINKS = {
+  servicios: "#servicios",
+  portafolio: "#portafolio",
+  sobre: "#dailyn",
+  tienda: "#tienda",
+  contacto: "#contacto",
+} as const;
+export type MenuLinkId = keyof typeof MENU_LINKS;
+export type MenuItem = { id: MenuLinkId; label: string; show: boolean };
+
+/**
+ * Caja del menú. `font` vacío = igual que los títulos.
+ * `brand` vacío = el nombre del estudio. Tamaños en píxeles.
+ */
+export type Menu = {
+  brand: string;
+  font: string;
+  uppercase: boolean;
+  brandSize: number;
+  itemSize: number;
+  items: MenuItem[];
+  button: string;
+};
+
+export const MENU_SIZES = { brand: { min: 11, max: 24 }, item: { min: 16, max: 40 } } as const;
+
+/** Estilos del menú (los usa la página y la vista previa del panel). */
+export function menuStyles(menu: Menu) {
+  const f = menu.font ? findFont(DISPLAY_FONTS, menu.font) : null;
+  const base: CSSProperties = {
+    fontFamily: f ? `var(${f.cssVar}), ${f.fallback}` : "var(--font-display)",
+    fontWeight: f ? f.weight : "var(--display-weight, 500)",
+    textTransform: menu.uppercase ? "uppercase" : "none",
+  };
+  return {
+    brand: { ...base, fontSize: menu.brandSize, letterSpacing: "-0.01em", lineHeight: 1.2 } satisfies CSSProperties,
+    item: { ...base, fontSize: menu.itemSize, letterSpacing: f ? f.tracking : "var(--display-tracking, -0.035em)", lineHeight: 1 } satisfies CSSProperties,
+    button: { ...base, fontSize: 14, letterSpacing: "-0.01em", lineHeight: 1.2 } satisfies CSSProperties,
+  };
+}
+
 /** Letras del sitio. `uppercase`: títulos en mayúsculas. */
 export type Theme = { displayFont: string; bodyFont: string; uppercase: boolean };
 
@@ -101,6 +155,7 @@ export type SiteContent = {
   testimonials: Testimonial[];
   booking: { title: string; subtitle: string };
   theme: Theme;
+  menu: Menu;
 };
 
 export const defaultContent: SiteContent = {
@@ -294,6 +349,22 @@ export const defaultContent: SiteContent = {
   },
 
   theme: { displayFont: "clash", bodyFont: "inter", uppercase: true },
+
+  menu: {
+    brand: "",
+    font: "",
+    uppercase: true,
+    brandSize: 14,
+    itemSize: 24,
+    items: [
+      { id: "servicios", label: "Servicios", show: true },
+      { id: "portafolio", label: "Portafolio", show: true },
+      { id: "sobre", label: "Dailyn", show: true },
+      { id: "tienda", label: "Tienda", show: true },
+      { id: "contacto", label: "Contacto", show: true },
+    ],
+    button: "Agendar cita",
+  },
 };
 
 /** URL pública del sitio (canonical, sitemap, Open Graph). */

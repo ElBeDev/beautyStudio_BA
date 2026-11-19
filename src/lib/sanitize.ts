@@ -2,6 +2,9 @@ import {
   BODY_FONTS,
   defaultContent,
   DISPLAY_FONTS,
+  MENU_LINKS,
+  MENU_SIZES,
+  type MenuItem,
   type Feature,
   type Highlight,
   type Photo,
@@ -98,6 +101,20 @@ const feature = (v: unknown, i: number): Feature | null => {
   };
 };
 
+const menuItems = (v: unknown, fallback: MenuItem[]): MenuItem[] => {
+  if (!Array.isArray(v)) return fallback;
+  const seen = new Set<string>();
+  const items = v.flatMap((x): MenuItem[] => {
+    const o = obj(x);
+    if (typeof o.id !== "string" || !(o.id in MENU_LINKS) || seen.has(o.id)) return [];
+    seen.add(o.id);
+    const fb = fallback.find((f) => f.id === o.id);
+    return [{ id: o.id as MenuItem["id"], label: str(o.label, fb?.label ?? "", 40) || fb?.label || "", show: o.show !== false }];
+  });
+  // Enlaces nuevos que todavía no estén en lo guardado.
+  return [...items, ...fallback.filter((f) => !seen.has(f.id))];
+};
+
 const BLOCK_KEY = /^[\w:-]{1,60}$/;
 
 const portfolioItem = (v: unknown): PortfolioItem | null => {
@@ -148,6 +165,7 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
   const store = obj(c.store);
   const booking = obj(c.booking);
   const theme = obj(c.theme);
+  const menu = obj(c.menu);
   const F = fallback;
 
   const introImages = Array.isArray(intro.images) ? intro.images : [];
@@ -219,6 +237,15 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
       displayFont: DISPLAY_FONTS.some((f) => f.key === theme.displayFont) ? (theme.displayFont as string) : F.theme.displayFont,
       bodyFont: BODY_FONTS.some((f) => f.key === theme.bodyFont) ? (theme.bodyFont as string) : F.theme.bodyFont,
       uppercase: typeof theme.uppercase === "boolean" ? theme.uppercase : F.theme.uppercase,
+    },
+    menu: {
+      brand: str(menu.brand, F.menu.brand, 60),
+      font: typeof menu.font === "string" && (menu.font === "" || DISPLAY_FONTS.some((f) => f.key === menu.font)) ? menu.font : F.menu.font,
+      uppercase: typeof menu.uppercase === "boolean" ? menu.uppercase : F.menu.uppercase,
+      brandSize: int(menu.brandSize, F.menu.brandSize, MENU_SIZES.brand.min, MENU_SIZES.brand.max),
+      itemSize: int(menu.itemSize, F.menu.itemSize, MENU_SIZES.item.min, MENU_SIZES.item.max),
+      items: menuItems(menu.items, F.menu.items),
+      button: str(menu.button, F.menu.button, 40) || F.menu.button,
     },
   };
 }
