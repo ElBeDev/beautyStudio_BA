@@ -37,6 +37,36 @@ export type Testimonial = { quote: string; author: string; context: string };
 
 export type Highlight = { title: string; text: string };
 
+/**
+ * Letras que se pueden elegir en el panel. Las fuentes se cargan en `src/app/fonts.ts`
+ * (con la misma variable CSS); aquí solo está lo que necesita el panel y la página.
+ * `weight` y `tracking` ajustan los títulos a cada letra.
+ */
+export type FontOption = { key: string; label: string; cssVar: string; fallback: string; weight: number; tracking: string; note: string };
+
+export const DISPLAY_FONTS: FontOption[] = [
+  { key: "clash", label: "Clash Display", cssVar: "--font-clash", fallback: "Arial, sans-serif", weight: 500, tracking: "-0.035em", note: "Moderna y apretada (la de siempre)" },
+  { key: "playfair", label: "Playfair Display", cssVar: "--font-playfair", fallback: "Georgia, serif", weight: 500, tracking: "-0.01em", note: "Clásica y elegante, con serifa" },
+  { key: "cormorant", label: "Cormorant", cssVar: "--font-cormorant", fallback: "Georgia, serif", weight: 500, tracking: "0em", note: "Fina y delicada, estilo revista" },
+  { key: "bodoni", label: "Bodoni Moda", cssVar: "--font-bodoni", fallback: "Georgia, serif", weight: 500, tracking: "-0.01em", note: "De moda y belleza, alto contraste" },
+  { key: "cinzel", label: "Cinzel", cssVar: "--font-cinzel", fallback: "Georgia, serif", weight: 500, tracking: "0.02em", note: "Lujosa, estilo grabado" },
+  { key: "montserrat", label: "Montserrat", cssVar: "--font-montserrat", fallback: "Arial, sans-serif", weight: 500, tracking: "-0.02em", note: "Limpia y redonda" },
+  { key: "josefin", label: "Josefin Sans", cssVar: "--font-josefin", fallback: "Arial, sans-serif", weight: 500, tracking: "0.01em", note: "Geométrica y fina" },
+];
+
+export const BODY_FONTS: FontOption[] = [
+  { key: "inter", label: "Inter", cssVar: "--font-inter", fallback: "system-ui, sans-serif", weight: 400, tracking: "0em", note: "Clara y neutra (la de siempre)" },
+  { key: "montserrat", label: "Montserrat", cssVar: "--font-montserrat", fallback: "Arial, sans-serif", weight: 400, tracking: "0em", note: "Redonda y moderna" },
+  { key: "dmsans", label: "DM Sans", cssVar: "--font-dmsans", fallback: "Arial, sans-serif", weight: 400, tracking: "0em", note: "Suave y amable" },
+  { key: "lora", label: "Lora", cssVar: "--font-lora", fallback: "Georgia, serif", weight: 400, tracking: "0em", note: "Con serifa, cálida" },
+  { key: "cormorant", label: "Cormorant", cssVar: "--font-cormorant", fallback: "Georgia, serif", weight: 400, tracking: "0em", note: "Con serifa, fina y elegante" },
+];
+
+export const findFont = (list: FontOption[], key: string) => list.find((f) => f.key === key) ?? list[0];
+
+/** Letras del sitio. `uppercase`: títulos en mayúsculas. */
+export type Theme = { displayFont: string; bodyFont: string; uppercase: boolean };
+
 export type SiteContent = {
   name: string;
   description: string;
@@ -59,7 +89,7 @@ export type SiteContent = {
   /** `image.focus` es el recorte en móvil; `focusDesktop`, en pantallas anchas. */
   hero: { image: Photo; focusDesktop: string; labels: string[] };
   marquee: string[];
-  intro: { line1: string; line2: string; line3: string; images: Photo[] };
+  intro: { title: string; line1: string; line2: string; line3: string; images: Photo[] };
   serviceGroups: ServiceGroup[];
   features: Feature[];
   /** Orden de los bloques entre la portada y el pie (ver `resolveLayout`). Vacío = orden de siempre. */
@@ -70,6 +100,7 @@ export type SiteContent = {
   store: { title: string; text: string; button: string };
   testimonials: Testimonial[];
   booking: { title: string; subtitle: string };
+  theme: Theme;
 };
 
 export const defaultContent: SiteContent = {
@@ -108,6 +139,7 @@ export const defaultContent: SiteContent = {
   marquee: ["Agenda tu cita", "Quinceañeras", "Novias", "Micropigmentación", "Cejas y pestañas", "Uñas", "Estilismo"],
 
   intro: {
+    title: "Beauty Studio by Dailyn Angulo",
     line1: "especialista en PMU certificada,",
     line2: "maquilladora profesional",
     line3: "+7 años de experiencia.",
@@ -130,13 +162,13 @@ export const defaultContent: SiteContent = {
       services: [
         {
           name: "Maquillaje para toda ocasión",
-          tag: "quince · novias · social",
+          tag: "Novias · quinceañeras · social",
           description:
             "Quinceañeras, novias, grados, fiestas y sesiones de fotos. Un acabado pensado para durar y verse impecable en cámara.",
         },
         {
           name: "Estilismo para toda ocasión",
-          tag: "peinados",
+          tag: "Peinados e hidrataciones",
           description: "Ondas, recogidos y semirecogidos que acompañan tu maquillaje, tu vestido y el estilo de tu evento.",
         },
       ],
@@ -152,16 +184,11 @@ export const defaultContent: SiteContent = {
       thumb: { src: "/images/pmu-labios-1.jpg", focus: "50% 55%" },
       services: [
         {
-          name: "Micropigmentación de cejas",
-          tag: "PMU",
+          name: "Micropigmentación",
+          tag: "Maquillaje permanente de cejas y labios",
           description:
             "Cejas definidas y naturales todos los días, sin maquillarte. Realizada por especialista certificada en PMU.",
-        },
-        {
-          name: "Micropigmentación de labios",
-          tag: "PMU",
-          description: "Color uniforme y contorno definido, con un tono elegido para ti.",
-        },
+        }
       ],
     },
     {
@@ -176,12 +203,12 @@ export const defaultContent: SiteContent = {
       services: [
         {
           name: "Diseño de cejas",
-          tag: "a tu medida",
+          tag: "Diseño personalizado · cejas en henna",
           description: "Un diseño pensado para la forma de tu rostro, que enmarca tu mirada.",
         },
         {
           name: "Lifting de pestañas",
-          tag: "sin extensiones",
+          tag: "Levanta y realza tus pestañas naturales",
           description: "Curvatura y elevación para tus pestañas naturales.",
         },
       ],
@@ -198,17 +225,17 @@ export const defaultContent: SiteContent = {
       services: [
         {
           name: "Uñas en resina y semipermanentes",
-          tag: "manicure",
+          tag: "Manicure y pedicure",
           description: "Manos cuidadas con acabado brillante, en resina o semipermanente.",
         },
         {
           name: "Hidrataciones capilares",
-          tag: "tratamiento",
+          tag: "Tratamiento para darle brillo a tu cabello",
           description: "Tratamientos para devolverle brillo, suavidad y vida a tu cabello.",
         },
         {
-          name: "Depilación corporal",
-          tag: "cuerpo",
+          name: "Depilación",
+          tag: "Corporal",
           description: "Piel suave, con atención en un espacio cómodo y privado.",
         },
       ],
@@ -219,7 +246,7 @@ export const defaultContent: SiteContent = {
   layout: [],
 
   portfolio: {
-    title: "Trabajos que hablan\npor sí solos",
+    title: "Algunos de\nnuestros trabajos",
     items: [
       { src: "/images/quince-1.jpg", alt: "Maquillaje de quinceañera con corona", width: 1200, height: 1600 },
       { src: "/images/pmu-labios-2.jpg", alt: "Micropigmentación de labios", width: 900, height: 1600, focus: "50% 50%" },
@@ -265,6 +292,8 @@ export const defaultContent: SiteContent = {
     title: "Agenda tu cita",
     subtitle: "cuéntanos tu fecha y te respondemos por WhatsApp.",
   },
+
+  theme: { displayFont: "clash", bodyFont: "inter", uppercase: true },
 };
 
 /** URL pública del sitio (canonical, sitemap, Open Graph). */

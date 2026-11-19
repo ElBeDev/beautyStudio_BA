@@ -140,7 +140,7 @@ export default async function Home() {
     presentacion: (
       <section className={`mx-auto max-w-5xl py-24 text-center sm:py-32 ${pad}`}>
         <h2 className="display text-3xl sm:text-5xl">
-          {c.name} es el estudio de {c.owner.name}
+          {c.intro.title}
         </h2>
         {c.intro.line1 && <p className="mt-4 text-2xl font-light italic sm:text-3xl">{c.intro.line1}</p>}
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-3 sm:gap-6">
@@ -247,10 +247,12 @@ export default async function Home() {
                     />
                   </span>
                 )}
-                <span className="display text-[clamp(1.6rem,3.7vw,3.4rem)] transition-colors group-hover:text-vino">{s.name}</span>
-                <span className="shrink-0 text-xs leading-5 text-muted sm:text-sm">
-                  {s.tag && <span className="block capitalize">{s.tag}</span>}
-                  <span className="block">Consultar +</span>
+                <span className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+                  <span className="display text-[clamp(1.6rem,3.7vw,3.4rem)] transition-colors group-hover:text-vino">{s.name}</span>
+                  <span className="text-xs leading-5 text-muted sm:max-w-52 sm:shrink-0 sm:text-sm">
+                    {s.tag && <span className="block first-letter:uppercase">{s.tag}</span>}
+                    <span className="block">Consultar +</span>
+                  </span>
                 </span>
               </a>
             </li>
@@ -366,7 +368,7 @@ export default async function Home() {
         <div className="grid gap-12 lg:grid-cols-2">
           <p className="display text-2xl leading-[1.3] text-rosa sm:text-[2rem]">
             Maquillaje, micropigmentación y estilismo en {c.location.city}
-            {c.location.near && `, ${c.location.near.toLowerCase()}`}.
+            {c.location.near && `, ${c.location.near.charAt(0).toLowerCase()}${c.location.near.slice(1)}`}.
           </p>
           <address className="grid gap-8 not-italic sm:grid-cols-3">
             <div>

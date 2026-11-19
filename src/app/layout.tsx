@@ -1,23 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
-import { siteUrl } from "@/content/site";
+import type { CSSProperties } from "react";
+import { BODY_FONTS, DISPLAY_FONTS, findFont, siteUrl, type Theme } from "@/content/site";
 import { getContent } from "@/lib/content";
+import { fontVariables } from "./fonts";
 import "./globals.css";
 
-// Clash Display (Indian Type Foundry, licencia gratuita de Fontshare)
-const clash = localFont({
-  src: "../fonts/ClashDisplay-Variable.woff2",
-  variable: "--font-clash",
-  weight: "200 700",
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
+/** Variables CSS con las letras elegidas en el panel (las usan `display`, `label` y el texto normal). */
+function themeStyle(theme: Theme): CSSProperties {
+  const display = findFont(DISPLAY_FONTS, theme.displayFont);
+  const body = findFont(BODY_FONTS, theme.bodyFont);
+  return {
+    "--font-display": `var(${display.cssVar}), ${display.fallback}`,
+    "--font-sans": `var(${body.cssVar}), ${body.fallback}`,
+    "--display-weight": String(display.weight),
+    "--display-tracking": display.tracking,
+    "--display-case": theme.uppercase ? "uppercase" : "none",
+  } as CSSProperties;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const c = await getContent();
@@ -81,11 +80,9 @@ async function jsonLd() {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const ld = await jsonLd();
+  const { theme } = await getContent();
   return (
-    <html
-      lang="es"
-      className={`${clash.variable} ${inter.variable} h-full`}
-    >
+    <html lang="es" className={`${fontVariables} h-full`} style={themeStyle(theme)}>
       <body className="min-h-full">
         <script
           type="application/ld+json"

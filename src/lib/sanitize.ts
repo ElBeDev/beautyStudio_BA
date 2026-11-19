@@ -1,5 +1,7 @@
 import {
+  BODY_FONTS,
   defaultContent,
+  DISPLAY_FONTS,
   type Feature,
   type Highlight,
   type Photo,
@@ -145,6 +147,7 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
   const about = obj(c.about);
   const store = obj(c.store);
   const booking = obj(c.booking);
+  const theme = obj(c.theme);
   const F = fallback;
 
   const introImages = Array.isArray(intro.images) ? intro.images : [];
@@ -178,6 +181,7 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
     },
     marquee: words(c.marquee, F.marquee, 12, 40),
     intro: {
+      title: str(intro.title, F.intro.title, 120) || F.intro.title,
       line1: str(intro.line1, F.intro.line1, 120),
       line2: str(intro.line2, F.intro.line2, 120),
       line3: str(intro.line3, F.intro.line3, 120),
@@ -210,6 +214,11 @@ export function sanitizeContent(input: unknown, fallback: SiteContent = defaultC
     booking: {
       title: str(booking.title, F.booking.title, 80),
       subtitle: str(booking.subtitle, F.booking.subtitle, 200),
+    },
+    theme: {
+      displayFont: DISPLAY_FONTS.some((f) => f.key === theme.displayFont) ? (theme.displayFont as string) : F.theme.displayFont,
+      bodyFont: BODY_FONTS.some((f) => f.key === theme.bodyFont) ? (theme.bodyFont as string) : F.theme.bodyFont,
+      uppercase: typeof theme.uppercase === "boolean" ? theme.uppercase : F.theme.uppercase,
     },
   };
 }

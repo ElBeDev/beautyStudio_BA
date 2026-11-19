@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { logoutAction, restoreVersionAction, saveContentAction, type SaveResult } from "@/app/admin/actions";
-import { blockLabel, resolveLayout, type Feature, type Photo, type PortfolioItem, type Service, type ServiceGroup, type SiteContent } from "@/content/site";
+import { BODY_FONTS, DISPLAY_FONTS, blockLabel, findFont, resolveLayout, type Feature, type FontOption, type Photo, type PortfolioItem, type Service, type ServiceGroup, type SiteContent } from "@/content/site";
 import type { Version } from "@/lib/content";
 import { Card, Field, ItemControls, StringList, inputClass, moveItem, smallButton } from "./fields";
 import { FocusEditor, PhotoField, UploadButton } from "./PhotoField";
@@ -20,6 +20,7 @@ const TABS = [
   ["tienda", "Tienda"],
   ["opiniones", "Opiniones"],
   ["contacto", "Contacto"],
+  ["letras", "Letras"],
   ["general", "General"],
   ["historial", "Historial"],
 ] as const;
@@ -178,7 +179,8 @@ export function Editor({ initial, versions: initialVersions, storeReady }: Props
         )}
 
         {tab === "presentacion" && (
-          <Card title="Presentación" hint={`El título dice: “${content.name} es el estudio de ${content.owner.name}”. Nombre y estudio se cambian en General.`}>
+          <Card title="Presentación">
+            <Field label="Título" value={content.intro.title} onChange={(v) => update((d) => void (d.intro.title = v))} />
             <Field label="Línea 1 (debajo del título)" value={content.intro.line1} onChange={(v) => update((d) => void (d.intro.line1 = v))} />
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Línea 2 (izquierda)" value={content.intro.line2} onChange={(v) => update((d) => void (d.intro.line2 = v))} />
@@ -365,6 +367,8 @@ export function Editor({ initial, versions: initialVersions, storeReady }: Props
             </Card>
           </>
         )}
+
+        {tab === "letras" && <FontsTab theme={content.theme} update={update} />}
 
         {tab === "general" && (
           <Card title="General">
@@ -788,6 +792,102 @@ function OptionalPhoto({
         Quitar foto
       </button>
     </div>
+  );
+}
+
+/* ───────────── Letras ───────────── */
+
+function FontsTab({ theme, update }: { theme: SiteContent["theme"]; update: (fn: (d: SiteContent) => void) => void }) {
+  const display = findFont(DISPLAY_FONTS, theme.displayFont);
+  const body = findFont(BODY_FONTS, theme.bodyFont);
+  const titleStyle = {
+    fontFamily: `var(${display.cssVar}), ${display.fallback}`,
+    fontWeight: display.weight,
+    letterSpacing: display.tracking,
+    textTransform: theme.uppercase ? "uppercase" : "none",
+    lineHeight: 1,
+  } as const;
+  const bodyStyle = { fontFamily: `var(${body.cssVar}), ${body.fallback}` };
+
+  return (
+    <>
+      <Card title="Vista previa" hint="Así se verán los títulos y el texto. Se aplica a toda la web al guardar.">
+        <div className="bg-rosa-soft p-6 sm:p-8">
+          <p style={titleStyle} className="text-3xl sm:text-5xl">
+            Beauty Studio by Dailyn Angulo
+          </p>
+          <p style={{ ...bodyStyle, fontWeight: 300 }} className="mt-4 text-xl italic sm:text-2xl">
+            especialista en PMU certificada, maquilladora profesional
+          </p>
+          <p style={bodyStyle} className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+            Quinceañeras, novias, grados, fiestas y sesiones de fotos. Un acabado pensado para durar y verse impecable en cámara.
+          </p>
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-ink"
+            checked={theme.uppercase}
+            onChange={(e) => update((d) => void (d.theme.uppercase = e.target.checked))}
+          />
+          Títulos en MAYÚSCULAS
+        </label>
+      </Card>
+      <FontPicker
+        title="Letra de los títulos"
+        fonts={DISPLAY_FONTS}
+        value={theme.displayFont}
+        sample={theme.uppercase ? "MAQUILLAJE" : "Maquillaje"}
+        onChange={(k) => update((d) => void (d.theme.displayFont = k))}
+      />
+      <FontPicker
+        title="Letra del texto"
+        fonts={BODY_FONTS}
+        value={theme.bodyFont}
+        sample="Agenda tu cita con nosotras"
+        onChange={(k) => update((d) => void (d.theme.bodyFont = k))}
+      />
+    </>
+  );
+}
+
+function FontPicker({
+  title,
+  fonts,
+  value,
+  sample,
+  onChange,
+}: {
+  title: string;
+  fonts: FontOption[];
+  value: string;
+  sample: string;
+  onChange: (key: string) => void;
+}) {
+  return (
+    <Card title={title}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {fonts.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            aria-pressed={f.key === value}
+            onClick={() => onChange(f.key)}
+            className={`grid gap-2 border p-4 text-left transition-colors ${
+              f.key === value ? "border-ink bg-rosa-soft" : "border-ink/15 bg-white hover:border-ink/50"
+            }`}
+          >
+            <span style={{ fontFamily: `var(${f.cssVar}), ${f.fallback}`, fontWeight: f.weight, letterSpacing: f.tracking }} className="text-2xl leading-tight">
+              {sample}
+            </span>
+            <span className="text-xs text-muted">
+              <strong className="font-medium text-ink">{f.label}</strong> · {f.note}
+              {f.key === value && " · elegida"}
+            </span>
+          </button>
+        ))}
+      </div>
+    </Card>
   );
 }
 
