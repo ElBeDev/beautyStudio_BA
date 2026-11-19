@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MENU_LINKS, menuStyles, type Menu } from "@/content/site";
+import { MENU_LINKS, menuStyles, type Menu, type SiteContent } from "@/content/site";
 import { defaultMessage, whatsappUrl } from "@/lib/whatsapp";
 
 /** Caja flotante con el nombre y el menú, y botón fijo para agendar. Letras, tamaños y textos vienen del panel. */
-export function Nav({ name, firstName, whatsapp, menu }: { name: string; firstName: string; whatsapp: string; menu: Menu }) {
+export function Nav({ name, whatsapp, menu, location }: { name: string; whatsapp: string; menu: Menu; location: SiteContent["location"] }) {
   const [open, setOpen] = useState(false);
   const styles = menuStyles(menu);
   const links = menu.items.filter((i) => i.show).map((i) => ({ href: MENU_LINKS[i.id], label: i.label }));
@@ -55,7 +55,7 @@ export function Nav({ name, firstName, whatsapp, menu }: { name: string; firstNa
       </header>
 
       <a
-        href={whatsappUrl(whatsapp, defaultMessage(firstName))}
+        href={whatsappUrl(whatsapp, defaultMessage(location))}
         target="_blank"
         rel="noopener noreferrer"
         style={styles.button}

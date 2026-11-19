@@ -324,7 +324,7 @@ export default async function Home() {
 
   return (
     <>
-      <Nav name={c.name} firstName={first} whatsapp={c.contact.whatsapp} menu={c.menu} />
+      <Nav name={c.name} whatsapp={c.contact.whatsapp} menu={c.menu} location={c.location} />
       <main id="inicio">
         {/* PORTADA */}
         <section className="relative isolate flex h-svh min-h-[620px] flex-col justify-end overflow-hidden bg-vino text-white">
@@ -384,7 +384,7 @@ export default async function Home() {
             <div>
               <p className="label">WhatsApp</p>
               <p className="mt-3 text-sm leading-6 text-white/80">
-                <a href={wa(defaultMessage(first))} {...ext} className="hover:text-rosa">
+                <a href={wa(defaultMessage(c.location))} {...ext} className="hover:text-rosa">
                   {c.contact.phoneDisplay}
                 </a>
               </p>
